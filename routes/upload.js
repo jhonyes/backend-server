@@ -1,6 +1,8 @@
 var express = require('express');
-var filelUpload = require('express-fileupload');
+
+var fileUpload = require('express-fileupload');
 var fs = require('fs');
+
 
 var app = express();
 
@@ -8,32 +10,34 @@ var Usuario = require('../models/usuario');
 var Medico = require('../models/medico');
 var Hospital = require('../models/hospital');
 
-// =====================================
+
 // default options
-// =====================================
-app.use(filelUpload());
+app.use(fileUpload());
+
+
 
 
 app.put('/:tipo/:id', (req, res, next) => {
+
     var tipo = req.params.tipo;
     var id = req.params.id;
 
-    // Tios de colección
+    // tipos de colección
     var tiposValidos = ['hospitales', 'medicos', 'usuarios'];
-
     if (tiposValidos.indexOf(tipo) < 0) {
         return res.status(400).json({
             ok: false,
-            mensaje: 'El tipo de colección no es válido',
-            errors: { message: 'Los tipos de coleccción válidos son ' + tiposValidos.join(', ') }
+            mensaje: 'Tipo de colección no es válida',
+            errors: { message: 'Tipo de colección no es válida' }
         });
     }
+
 
     if (!req.files) {
         return res.status(400).json({
             ok: false,
-            mensaje: 'No seleccionó nada',
-            errors: { message: 'Debe seleccionar una imagen' }
+            mensaje: 'No selecciono nada',
+            errors: { message: 'Debe de seleccionar una imagen' }
         });
     }
 
@@ -48,18 +52,21 @@ app.put('/:tipo/:id', (req, res, next) => {
     if (extensionesValidas.indexOf(extensionArchivo) < 0) {
         return res.status(400).json({
             ok: false,
-            mensaje: 'Extensión no válida',
+            mensaje: 'Extension no válida',
             errors: { message: 'Las extensiones válidas son ' + extensionesValidas.join(', ') }
         });
     }
 
     // Nombre de archivo personalizado
+    // 12312312312-123.png
     var nombreArchivo = `${ id }-${ new Date().getMilliseconds() }.${ extensionArchivo }`;
 
-    //Mover el archivo del temporal a un path
+
+    // Mover el archivo del temporal a un path
     var path = `./uploads/${ tipo }/${ nombreArchivo }`;
 
-    archivo.mv(path, (err) => {
+    archivo.mv(path, err => {
+
         if (err) {
             return res.status(500).json({
                 ok: false,
@@ -68,15 +75,22 @@ app.put('/:tipo/:id', (req, res, next) => {
             });
         }
 
+
         subirPorTipo(tipo, id, nombreArchivo, res);
 
-        //    res.status(200).json({
-        //        ok: true,
-        //        mensaje: 'Petición realizada correctamente',
-        //        extensionArchivo: extensionArchivo
-        //    });
-    });
+        // res.status(200).json({
+        //     ok: true,
+        //     mensaje: 'Archivo movido',
+        //     extensionArchivo: extensionArchivo
+        // });
+
+
+    })
+
+
+
 });
+
 
 
 function subirPorTipo(tipo, id, nombreArchivo, res) {
@@ -98,7 +112,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
 
             // Si existe, elimina la imagen anterior
             if (fs.existsSync(pathViejo)) {
-                fs.unlink(pathViejo);
+                fs.unlinkSync(pathViejo);
             }
 
             usuario.img = nombreArchivo;
@@ -113,7 +127,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
                     usuario: usuarioActualizado
                 });
 
-            });
+            })
 
 
         });
@@ -136,7 +150,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
 
             // Si existe, elimina la imagen anterior
             if (fs.existsSync(pathViejo)) {
-                fs.unlink(pathViejo);
+                fs.unlinkSync(pathViejo);
             }
 
             medico.img = nombreArchivo;
@@ -149,7 +163,7 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
                     usuario: medicoActualizado
                 });
 
-            });
+            })
 
         });
     }
@@ -183,12 +197,14 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
                     usuario: hospitalActualizado
                 });
 
-            });
+            })
 
         });
     }
 
 
 }
+
+
 
 module.exports = app;
